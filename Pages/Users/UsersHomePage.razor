@@ -1,0 +1,168 @@
+﻿@page "/users"
+@inject IDbContextFactory<TescatContext> ContextFactory
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+@using System.Reflection;
+
+
+
+<UserSearch></UserSearch>
+
+<button type="button" class="btn btn-primary" @onclick="CreateNewUser">Agregar Usuario</button>
+
+
+<div class="container">
+    <div class="row">
+
+        @if (Users == null)
+        {
+
+            <p>Loading users...</p>
+
+        }
+        else
+        {
+
+
+
+            @*Aqui creamos cada tarjeta y las agrupamos con la clase .grid y le pasamos los datos del usuario desde User.cs*@
+            @foreach (var user in Users)
+            {
+                <UserCard User="user" DeleteUser="DeleteUser" />
+
+            }
+
+        }
+    </div>
+
+</div>
+
+
+
+@code {
+    private User[]? Users { get; set; }
+
+    private User? DeletedUser;
+
+
+
+    protected override async
+     Task OnInitializedAsync()
+    {
+
+        await LoadData();
+
+
+    }
+
+
+    private async Task LoadData()
+    {
+
+
+        //cuando se usa el keywork 'using' desecha al finalizar este metodo
+        using var context = ContextFactory.CreateDbContext();
+
+        try
+        {
+            Users = await context.Users.ToArrayAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Hubo un problema al cargar la informacion de los usuarios{ex.Message}");
+        }
+
+
+    }
+
+    protected void CreateNewUser()
+    {
+        NavigationManager.NavigateTo("/users/add");
+    }
+
+
+
+    /*
+    private void DeleteUser(User user)
+        => DeletedUser = user;
+
+
+
+        private async Task DeleteUser(User user)
+        {
+        using var context = ContextFactory.CreateDbContext();
+
+        var relatedPCUsers = await context.PC.Where(p => p.ID_USER == user.ID_USER).ToListAsync();
+
+
+
+       //context.PC.RemoveRange(relatedPCUsers);
+
+           foreach (var pc in relatedPCUsers)
+           {
+           pc.ID_USER = null; // or 0, if your schema allows that
+       }
+
+
+
+       context.Users.Remove(user);
+       await context.SaveChangesAsync();
+
+       await LoadData();
+    }
+    */
+
+
+
+    private async Task NullifyUserIdAsync<T>(IQueryable<T> queryable) where T : class, new()
+    {
+        var records = await queryable.ToListAsync();
+        PropertyInfo? propertyInfo = typeof(T).GetProperty("ID_USER");
+
+        if (propertyInfo != null)
+        {
+            foreach (var record in records)
+            {
+                propertyInfo.SetValue(record, null);
+            }
+        }
+    }
+
+    private async Task DeleteUser(User user)
+    {
+
+        var confirmed = await JS.InvokeAsync<bool>("confirm",
+        $"Eliminar al usuario {user.NAME}?");
+
+        if (confirmed)
+        {
+
+            try
+            {
+                using var context = ContextFactory.CreateDbContext();
+
+                // Nullify ID_USER for related PCs
+                await NullifyUserIdAsync(context.PC.Where(p => p.ID_USER == user.ID_USER));
+
+                // Nullify ID_USER for related User Credentials
+                await NullifyUserIdAsync(context.User_Credentials.Where(uc => uc.ID_USER == user.ID_USER));
+
+                // Remove the user
+                context.Users.Remove(user);
+                // Save changes
+                await context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                
+            }
+            // Reload the data
+            await LoadData();
+        }
+    }
+
+
+
+}
+
+

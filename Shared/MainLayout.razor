@@ -1,0 +1,47 @@
+﻿@inherits LayoutComponentBase
+
+<PageTitle>Tescat</PageTitle>
+
+<div class="page">
+
+    <span class="@ActiveSideBarStyles active-sidebar-toggle material-symbols-outlined ms-3" @onclick="ToggleActiveSideBarStyles">
+        @SideBarIcon
+    </span>
+
+    <div class="@ActiveSideBarStyles sidebar" @onmouseover="ApplyActiveSideBarStyles " @onmouseout="ApplyActiveSideBarStyles ">
+
+
+        <NavMenu ActiveSideBarStyles="@ActiveSideBarStyles" />
+
+    </div>
+
+    @*   <MainHeader />*@
+
+    <main class="container mt-5 mb-5">
+
+        @Body
+
+    </main>
+
+</div>
+
+@code {
+    public string ActiveSideBarStyles { get; private set; } = "sidebar-active";
+    public bool ActiveToggle { get; private set; } = true;
+    public string SideBarIcon { get; private set; } = "menu_open";
+
+    public void ToggleActiveSideBarStyles()
+    {
+        ActiveToggle = !ActiveToggle;
+        ActiveSideBarStyles = ActiveToggle ? "sidebar-active" : "";
+        SideBarIcon = ActiveToggle ? "menu_open" : "menu";
+    }
+
+    public void ApplyActiveSideBarStyles()
+    {
+        if (!ActiveToggle)
+        {
+            ActiveSideBarStyles = string.IsNullOrEmpty(ActiveSideBarStyles) ? "sidebar-active" : "";
+        }
+    }
+}

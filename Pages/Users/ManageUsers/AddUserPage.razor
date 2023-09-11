@@ -1,0 +1,63 @@
+﻿@page "/users/add"
+@inject NavigationManager NavManager
+
+<PageTitle>Agregar Usuario - Tescat</PageTitle>
+<div class="col-lg-4" style="margin: 0 auto;">
+    <div class="card border-rounded" style="width: 300px; border-radius: 15px;">
+        <div class="card-body">
+            <center class="m-t-30">
+                <div class="profile-img">
+                    <img src="https://bootdey.com/img/Content/avatar/avatar1.png" class="img-circle" width="150">
+                </div>
+            </center>
+        </div>
+        <div>
+            <hr>
+        </div>
+        <div class="card-body " style="text-align:center">
+
+            Escribir numero de usuario
+
+
+
+            <input type="number" class="form-control form-control-lg mt-3 mb-3"
+            @onkeydown="AddingUser"
+            @bind="UserID"
+            @bind:event="oninput" />
+            <button @onclick="AddingUserButton" class="btn btn-primary" type="button">Guardar</button>
+
+
+
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private int? UserID;
+
+
+
+    private void AddingUser(KeyboardEventArgs args)
+    {
+        if (args.Key != "Enter") return;
+
+        if (UserID.HasValue && UserID > 0)
+        {
+            NavManager.NavigateTo($"/users/add/" + UserID);
+        }
+    }
+
+    private void AddingUserButton()
+    {
+
+        if (UserID.HasValue && UserID > 0)
+        {
+            NavManager.NavigateTo($"/users/add/" + UserID);
+        }
+    }
+
+
+
+
+}

@@ -1,0 +1,130 @@
+﻿@if (User is not null)
+{
+
+    <EditForm Model="@User" OnValidSubmit="@HandleValidSubmit" OnInvalidSubmit="@HandleInvalidSubmit">
+        <DataAnnotationsValidator />
+
+        <FormSection Title="Informacion Basica">
+
+            <div class="row mb-3">
+
+                <FormFieldSet Width="col-md-6" Label="Nombre Completo">
+
+                    <InputText id="Nombre Completo" class="form-control" @bind-Value="User.NAME" />
+                    <ValidationMessage For="() => User.NAME" />
+
+                </FormFieldSet>
+
+
+                <FormFieldSet Width="col-md-6" Label="Departamento">
+
+                    <InputSelect id="Departamento" class="form-control" @bind-Value="User.DEPT">
+                        @if (DepartmentsList is not null)
+                        {
+                            @foreach (var dept in DepartmentsList)
+                            {
+                                <option value="@dept">@dept</option>
+                            }
+                        }
+
+                    </InputSelect>
+                    <ValidationMessage For="() => User.DEPT" />
+
+                </FormFieldSet>
+
+
+
+            </div>
+
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+
+                    <input class="form-check-input" type="radio" name="radioGroup" id="radio1" value="option1">
+                    <label class="form-check-label" for="radio1">Masculino</label>
+                    <input class="form-check-input" type="radio" name="radioGroup" id="radio2" value="option2">
+                    <label class="form-check-label" for="radio2">Femenino</label>
+
+                </div>
+
+            </div>
+
+
+            <div class="row mb-3">
+                <FormFieldSet Width="col-2" Label="Numero de Empleado">
+
+                    <InputNumber id="Numero de Empleado" class="form-control" @bind-Value="User.ID_USER"/>
+                    <ValidationMessage For="() => User.ID_USER" />
+
+                </FormFieldSet>
+
+            </div>
+
+            @if (IsEdit)
+            {
+                <button type="submit" class="btn btn-primary" disabled="@IsBusy">Actualizar</button>
+                <button type="button" class="btn btn-secondary" @onclick="HandleCancel" disabled="@IsBusy">Cancelar</button>
+            }
+            else
+            {
+                <button type="submit" class="btn btn-primary" disabled="@IsBusy">Agregar Usuario</button>
+            }
+
+
+
+        </FormSection>
+
+
+
+    </EditForm>
+
+}
+
+
+@code {
+    [Parameter]
+    public User? User { get; set; }
+
+    [Parameter]
+    public string[]? DepartmentsList { get; set; }
+
+    [Parameter]
+    public bool IsBusy { get; set; }
+
+    [Parameter]
+    public bool IsEdit { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnSubmit { get; set; }
+
+
+    [Parameter]
+    public EventCallback<bool> OnCancel { get; set; }
+
+
+    private async Task HandleValidSubmit()
+    {
+        if (OnSubmit.HasDelegate)
+        {
+            await OnSubmit.InvokeAsync(true);
+        }
+
+    }
+
+    private async Task HandleInvalidSubmit()
+    {
+        if (OnSubmit.HasDelegate)
+        {
+            await OnSubmit.InvokeAsync(false);
+        }
+    }
+
+    private async Task HandleCancel()
+    {
+        if (OnCancel.HasDelegate)
+        {
+            await OnCancel.InvokeAsync();
+        }
+
+    }
+}

@@ -1,0 +1,139 @@
+﻿@page "/users/details"
+@page "/users/details/{UserDbId:int}"
+@inject NavigationManager NavigationManager
+@inject IDbContextFactory<TescatContext> ContextFactory
+
+<PageTitle>Detalles del Usuario - Tescat</PageTitle>
+
+@if (User is null && !IsBusy)
+{
+    <div class="alert alert-primary ">El Usuario Con Numero De Empleado: @UserDbId No Existe </div>
+
+    <div>
+        <h3>
+            ¿Necesita registrar al usuario?
+        </h3>
+        <button class="btn btn-info" @onclick="AddUser">
+            Agregar
+        </button>
+        <button class="btn btn-info" @onclick="ReturnToUsersHome">
+            Regresar
+        </button>
+    </div>
+}
+else
+{
+    <UserForm User="@User" IsBusy="@IsBusy" IsEdit="true"
+              DepartmentsList="@DepartmentsList" OnSubmit="@HandleSubmit" OnCancel="ReturnToUsersHome" />
+}
+
+@if (SuccessMessage is not null)
+{
+    <div class="alert alert-success ">@SuccessMessage</div>
+}
+
+@if (ErrorMessage is not null)
+{
+    <div class="alert alert-danger ">@ErrorMessage</div>
+}
+
+
+
+
+@code {
+    private User? User { get; set; }
+
+    private bool IsBusy { get; set; }
+
+    private string? ErrorMessage { get; set; }
+    private string? SuccessMessage { get; set; }
+
+
+
+
+    [Parameter]
+    public int UserDbId { get; set; }
+
+    private string[]? DepartmentsList { get; set; }
+
+
+    protected override async
+    Task OnParametersSetAsync()
+    {
+        IsBusy = true;
+
+        try
+        {
+            using var context = ContextFactory.CreateDbContext();
+
+            var Departments = await context.Users
+            .AsNoTracking().OrderBy(dept => dept.DEPT).ToArrayAsync();
+
+            DepartmentsList = Departments.Where(u => u.DEPT != null).Select(u => u.DEPT!).Distinct().ToArray();
+
+            User = await context.Users
+            .AsNoTracking().FirstOrDefaultAsync(usr => usr.ID_USER == UserDbId);
+
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+
+    private async Task HandleSubmit(bool isValid)
+    {
+        if (User is null || IsBusy || !isValid)
+        {
+            ErrorMessage = null;
+            return;
+        }
+
+
+        IsBusy = true;
+
+        try
+        {
+            using var context = ContextFactory.CreateDbContext();
+            context.Update(User);
+            await context.SaveChangesAsync();
+
+            //ReturnToUsersHome();
+
+            SuccessMessage = $"El usuario se actualizo correctamente.";
+            ErrorMessage = null;
+
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            ErrorMessage = "El usuario esta siendo modificado por otra persona. Por favor recargue la pagina.";
+        }
+        catch (Exception ex)
+        {
+            //SuccessMesasage = null;
+            ErrorMessage = $"Hubo un error al registrar al usuario: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+
+    }
+
+
+    protected void AddUser()
+    {
+        NavigationManager.NavigateTo("/users/add/" + UserDbId);
+    }
+    protected void ReturnToUsersHome()
+    {
+        NavigationManager.NavigateTo("/users/");
+    }
+
+
+
+
+
+
+}

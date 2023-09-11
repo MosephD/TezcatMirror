@@ -1,0 +1,160 @@
+﻿@page "/users/add/{UserID:int}"
+@inject NavigationManager NavigationManager
+@inject IDbContextFactory<TescatContext> ContextFactory
+
+
+<PageTitle>Agregar Nuevo Usuario - Tescat</PageTitle>
+
+@if (UserAlreadyExists)
+{
+
+    <div class="alert alert-primary ">El Usuario Con Numero De Empleado: @UserID. <br> Ya Existe.</div>
+
+    <div>
+        <h3>
+            ¿Quiere editar al usuario?
+        </h3>
+        <button class="btn btn-info" @onclick="EditUserPage">
+            Editar
+        </button>
+        <button class="btn btn-info" @onclick="ReturnToAddUsersHome">
+            Regresar
+        </button>
+    </div>
+
+}
+else
+{
+    <UserForm User="@User" IsBusy="@IsBusy"
+              DepartmentsList="@DepartmentsList" OnSubmit="@HandleSubmit" OnCancel="ReturnToAddUsersHome" />
+}
+
+@if (SuccessMessage is not null)
+{
+    <br />
+    <div class="alert alert-success">@SuccessMessage</div>
+}
+
+@if (ErrorMessage is not null)
+{
+    <br />
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+
+
+@code {
+    private User? User { get; set; }
+
+    public bool IsBusy { get; set; }
+
+    private bool UserAlreadyExists { get; set; }
+
+    private string[]? DepartmentsList { get; set; }
+
+    private string? SuccessMessage { get; set; }
+    private string? ErrorMessage { get; set; }
+
+    [Parameter]
+    public int? UserID { get; set; }
+
+
+    protected override async
+    Task OnInitializedAsync()
+    {
+        using var context = ContextFactory.CreateDbContext();
+
+        UserAlreadyExists = await context.Users.AnyAsync(u => u.ID_USER == UserID);
+
+        var Departments = await context.Users.OrderBy(dept => dept.DEPT).ToArrayAsync();
+
+        DepartmentsList = Departments.Where(u => u.DEPT != null).Select(u => u.DEPT!).Distinct().ToArray();
+        if (!UserAlreadyExists)
+        {
+
+            User = new();
+            //For new Users
+            if (UserID.HasValue)
+            {
+                User.ID_USER = UserID.Value;
+            }
+        }
+    }
+
+
+
+
+    private async Task HandleValidSubmit()
+    {
+        if (IsBusy)
+        {
+            return;
+        }
+
+
+        IsBusy = true;
+
+        try
+        {
+            if (User is not null)
+            {
+                using var context = ContextFactory.CreateDbContext();
+
+                context.Users.Add(User);
+                await context.SaveChangesAsync();
+
+                SuccessMessage = $"El usuario {User.NAME} se registro correctamente.";
+                ErrorMessage = null;
+
+                User = new()
+                {
+                };
+            }
+
+        }
+        catch (Exception ex)
+        {
+            SuccessMessage = null;
+            ErrorMessage = $"Hubo un error al registrar al usuario: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+
+    }
+
+
+
+    private void HandleInvalidSubmit()
+    {
+        SuccessMessage = null;
+        ErrorMessage = null;
+    }
+
+
+    private async Task HandleSubmit(bool isValid)
+    {
+        if (isValid)
+        {
+            await HandleValidSubmit();
+        }
+        else
+        {
+            HandleInvalidSubmit();
+        }
+    }
+
+    protected void EditUserPage()
+    {
+        NavigationManager.NavigateTo("/users/details/" + UserID);
+    }
+    protected void ReturnToAddUsersHome()
+    {
+        NavigationManager.NavigateTo("/users/add/");
+    }
+
+}
+
+
+
+
