@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Tescat1.Models;
 
 
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -18,6 +20,9 @@ builder.Services.AddDbContextFactory<TescatContext>(
 
 
 var app = builder.Build();
+
+
+
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

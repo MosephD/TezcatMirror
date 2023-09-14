@@ -1,0 +1,220 @@
+﻿@page "/users/details"
+@page "/users/details/{UserDbId:int}"
+@inject NavigationManager NavigationManager
+@inject IDbContextFactory<TescatContext> ContextFactory
+@using System.Reflection;
+
+<PageTitle>Detalles del Usuario - Tescat</PageTitle>
+
+@if (User is null && !IsBusy)
+{
+    <div class="alert alert-primary ">El Usuario Con Numero De Empleado: @UserDbId No Existe </div>
+
+    <div>
+        <h3>
+            ¿Necesita registrar al usuario?
+        </h3>
+        <button class="btn btn-info" @onclick="AddNewUserPage">
+            Agregar
+        </button>
+        <button class="btn btn-info" @onclick="ReturnToUsersHome">
+            Regresar
+        </button>
+    </div>
+}
+else
+{
+    <UserForm User="@User" IsBusy="@IsBusy" IsEdit="true"
+              DepartmentsList="@DepartmentsList" OnSubmit="@HandleSubmit" OnCancel="ReturnToUsersHome" />
+}
+
+@if (SuccessMessage is not null)
+{
+    <div class="alert alert-success ">@SuccessMessage</div>
+}
+
+@if (ErrorMessage is not null)
+{
+    <div class="alert alert-danger ">@ErrorMessage</div>
+}
+
+
+
+
+@code {
+    private User? User { get; set; }
+
+    private bool IsBusy { get; set; }
+
+    private string? ErrorMessage { get; set; }
+    private string? SuccessMessage { get; set; }
+
+    private int? OriginalUserId { get; set; }
+
+
+
+
+    [Parameter]
+    public int UserDbId { get; set; }
+    private string[]? DepartmentsList { get; set; }
+
+
+    protected override async
+    Task OnParametersSetAsync()
+    {
+        IsBusy = true;
+
+
+
+
+        try
+        {
+
+            using var context = ContextFactory.CreateDbContext();
+
+
+            var Departments = await context.Users
+            .AsNoTracking().OrderBy(dept => dept.DEPT).ToArrayAsync();
+
+            DepartmentsList = Departments.Where(u => u.DEPT != null).Select(u => u.DEPT!).Distinct().ToArray();
+
+
+            User = await context.Users
+            .AsNoTracking().FirstOrDefaultAsync(usr => usr.ID_USER == UserDbId);
+
+            OriginalUserId = User?.ID_USER;
+
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+
+    private async Task HandleSubmit(bool isValid)
+    {
+        if (User is null || IsBusy || !isValid)
+        {
+            ErrorMessage = null;
+            return;
+        }
+
+
+        IsBusy = true;
+
+        try
+
+        {
+
+            using var context = ContextFactory.CreateDbContext();
+
+            var existingUser = await context.Users
+              .AsNoTracking().FirstOrDefaultAsync(usr => usr.ID_USER == User.ID_USER);
+
+            if (existingUser != null && OriginalUserId != User.ID_USER)
+            {
+                // User with the same ID already exists, abort operation
+                ErrorMessage = $"Ya existe un usuario con el numero de empleado {User.ID_USER}.";
+
+                SuccessMessage = null;
+            }
+            else
+            {
+                if (OriginalUserId != User.ID_USER) // Check if ID_USER has changed
+                {
+                    // Add logic to create a new user in the database
+                    var newUser = new User
+                        {
+                            ID_USER = User.ID_USER,
+                            NAME = User.NAME,
+                            DEPT = User.DEPT,
+                            POSITION = User.POSITION,
+                            ENTRY_DATE = User.ENTRY_DATE
+                        };
+                    context.Users.Add(newUser);
+                    await context.SaveChangesAsync();
+
+                    NavigationManager.NavigateTo($"/users/details/{newUser.ID_USER}");
+
+                    if (OriginalUserId.HasValue)
+                    {
+                        await DeleteUserByIdAsync(OriginalUserId.Value, context);
+                    }
+                }
+                else
+                {
+                    context.Update(User);
+                    await context.SaveChangesAsync();
+                }
+
+                OriginalUserId = User.ID_USER;
+
+                //ReturnToUsersHome();
+
+                SuccessMessage = $"El usuario se actualizo correctamente.";
+                ErrorMessage = null;
+            }
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            ErrorMessage = "El usuario esta siendo modificado por otra persona. Por favor recargue la pagina.";
+        }
+        catch (Exception ex)
+        {
+            //SuccessMesasage = null;
+            ErrorMessage = $"Hubo un error al actualizar al usuario: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+
+    }
+
+    private async
+       Task NullifyUserIdAsync<T>(IQueryable<T> queryable) where T : class, new()
+    {
+        var records = await queryable.ToListAsync();
+        PropertyInfo? propertyInfo = typeof(T).GetProperty("ID_USER");
+
+        if (propertyInfo != null)
+        {
+            foreach (var record in records)
+            {
+                propertyInfo.SetValue(record, null);
+            }
+        }
+    }
+
+    private async Task DeleteUserByIdAsync(int userId, TescatContext context)
+    {
+        if (User is not null)
+        {
+            // Nullify ID_USER for related PCs
+            await NullifyUserIdAsync(context.PC.Where(p => p.ID_USER == userId));
+            // Fetch and Delete rows in User_Credentials table for the given ID_USER
+            var relatedUserCredentials = await context.User_Credentials.Where(uc => uc.ID_USER == userId).ToListAsync();
+            context.User_Credentials.RemoveRange(relatedUserCredentials);
+        }
+        // Remove the user
+        var userToDelete = await context.Users.FirstOrDefaultAsync(u => u.ID_USER == userId);
+        if (userToDelete != null)
+        {
+            context.Users.Remove(userToDelete);
+        }
+
+        // Save changes
+        await context.SaveChangesAsync();
+    }
+
+
+    protected void AddNewUserPage()
+    {
+        NavigationManager.NavigateTo("/users/add/" + UserDbId);
+    }
+    protected void ReturnToUsersHome()
+    {
+        NavigationManager.NavigateTo("/users/");
+    }
+}

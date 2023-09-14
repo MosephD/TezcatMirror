@@ -51,13 +51,41 @@
 
 
             <div class="row mb-3">
+                <FormFieldSet Width="col-md-6" Label="Puesto">
+
+                    <InputText id="Puesto" class="form-control" @bind-Value="User.POSITION" />
+                    <ValidationMessage For="() => User.POSITION" />
+
+                </FormFieldSet>
+
+
+                <FormFieldSet Width="col-md-6" Label="Fecha de Ingreso">
+
+                    <InputDate id="Fecha de Ingreso" class="form-control" @bind-Value="User.ENTRY_DATE" />
+                    <ValidationMessage For="() => User.ENTRY_DATE" />
+
+                </FormFieldSet>
+
+            </div>
+
+
+            <div class="row mb-3">
                 <FormFieldSet Width="col-2" Label="Numero de Empleado">
 
-                    <InputNumber id="Numero de Empleado" class="form-control" @bind-Value="User.ID_USER"/>
+                    <InputNumber id="Numero de Empleado" class="form-control" @bind-Value="User.ID_USER" />
                     <ValidationMessage For="() => User.ID_USER" />
 
                 </FormFieldSet>
 
+
+
+            </div>
+
+
+            <div class="row mb-3">
+                <FormFieldSet Width="col-3" Label="Foto del Empleado">
+                   <UserPictureUpload  />
+                </FormFieldSet>
             </div>
 
             @if (IsEdit)

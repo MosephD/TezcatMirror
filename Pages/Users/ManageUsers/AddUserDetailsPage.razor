@@ -68,6 +68,7 @@ else
         var Departments = await context.Users.OrderBy(dept => dept.DEPT).ToArrayAsync();
 
         DepartmentsList = Departments.Where(u => u.DEPT != null).Select(u => u.DEPT!).Distinct().ToArray();
+
         if (!UserAlreadyExists)
         {
 

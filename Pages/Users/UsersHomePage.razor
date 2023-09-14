@@ -82,39 +82,8 @@
 
 
 
-    /*
-    private void DeleteUser(User user)
-        => DeletedUser = user;
-
-
-
-        private async Task DeleteUser(User user)
-        {
-        using var context = ContextFactory.CreateDbContext();
-
-        var relatedPCUsers = await context.PC.Where(p => p.ID_USER == user.ID_USER).ToListAsync();
-
-
-
-       //context.PC.RemoveRange(relatedPCUsers);
-
-           foreach (var pc in relatedPCUsers)
-           {
-           pc.ID_USER = null; // or 0, if your schema allows that
-       }
-
-
-
-       context.Users.Remove(user);
-       await context.SaveChangesAsync();
-
-       await LoadData();
-    }
-    */
-
-
-
-    private async Task NullifyUserIdAsync<T>(IQueryable<T> queryable) where T : class, new()
+    private async 
+    Task NullifyUserIdAsync<T>(IQueryable<T> queryable) where T : class, new()
     {
         var records = await queryable.ToListAsync();
         PropertyInfo? propertyInfo = typeof(T).GetProperty("ID_USER");
@@ -128,7 +97,8 @@
         }
     }
 
-    private async Task DeleteUser(User user)
+    private async 
+    Task DeleteUser(User user)
     {
 
         var confirmed = await JS.InvokeAsync<bool>("confirm",
@@ -144,8 +114,9 @@
                 // Nullify ID_USER for related PCs
                 await NullifyUserIdAsync(context.PC.Where(p => p.ID_USER == user.ID_USER));
 
-                // Nullify ID_USER for related User Credentials
-                await NullifyUserIdAsync(context.User_Credentials.Where(uc => uc.ID_USER == user.ID_USER));
+                // Fetch and Delete rows in User_Credentials table for the given ID_USER
+                var relatedUserCredentials = await context.User_Credentials.Where(uc => uc.ID_USER == user.ID_USER).ToListAsync();
+                context.User_Credentials.RemoveRange(relatedUserCredentials);
 
                 // Remove the user
                 context.Users.Remove(user);
@@ -154,7 +125,7 @@
             }
             catch (DbUpdateConcurrencyException)
             {
-                
+
             }
             // Reload the data
             await LoadData();
