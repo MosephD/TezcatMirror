@@ -8,6 +8,7 @@
 
 @if (User is null && !IsBusy)
 {
+    
     <div class="alert alert-primary ">El Usuario Con Numero De Empleado: @UserDbId No Existe </div>
 
     <div>
@@ -63,7 +64,7 @@ else
     Task OnParametersSetAsync()
     {
         IsBusy = true;
-
+        SuccessMessage = null;
 
 
 

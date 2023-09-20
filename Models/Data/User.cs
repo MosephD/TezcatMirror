@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 //using System.Collections.Generic;
 
 namespace Tescat1.Models.Data
@@ -38,6 +39,11 @@ namespace Tescat1.Models.Data
         public DateTime? LAST_MODIF { get; set; }
 
         public List<UserEmails> Email { get; set; } = new List<UserEmails>();
+
+        public string? IMAGE_NAME { get; set; }
+
+        [NotMapped]
+        public byte[]? ImageContent { get; set; }
 
         [Timestamp]
         public byte[]? Timestamp { get; set; }
