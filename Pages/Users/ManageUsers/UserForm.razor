@@ -7,6 +7,22 @@
         <FormSection Title="Informacion Basica">
 
             <div class="row mb-3">
+                <FormFieldSet Width="col-3" Label="Foto del Empleado">
+                    @if (User.IMAGE_NAME is not null)
+                    {
+
+                    }
+                    else
+                    {
+                    }
+                    <img src="@GetImagePath()" style="width:12rem; display:block; border-radius:1rem; margin-bottom:1rem; object-fit: cover;">
+
+                    <UserPictureUpload @ref="userPictureUploadRef" OnFileUploaded="HandleFileUpload" />
+
+                </FormFieldSet>
+            </div>
+
+            <div class="row mb-3">
 
                 <FormFieldSet Width="col-md-6" Label="Nombre Completo">
 
@@ -82,12 +98,6 @@
             </div>
 
 
-            <div class="row mb-3">
-                <FormFieldSet Width="col-3" Label="Foto del Empleado">
-                   <UserPictureUpload  />
-                </FormFieldSet>
-            </div>
-
             @if (IsEdit)
             {
                 <button type="submit" class="btn btn-primary" disabled="@IsBusy">Actualizar</button>
@@ -129,9 +139,41 @@
     [Parameter]
     public EventCallback<bool> OnCancel { get; set; }
 
+    private string? imageFilePath;
+
+    private UserPictureUpload? userPictureUploadRef;
+
+
+    private void HandleFileUpload(string path)
+    {
+        imageFilePath = path;
+        Console.WriteLine("Ruta de la imagen: " + imageFilePath);
+        // Aquí puede a signar imageFilePath al modelo de usuario, si es necesario
+        if (User is not null)
+        {
+            User.IMAGE_NAME = imageFilePath;
+        }
+    }
+
+    private string GetImagePath()
+    {
+        @if (User?.IMAGE_NAME is not null)
+        {
+            return $"/Images/{User.IMAGE_NAME}";
+        }
+        else
+        {
+            return $"/Images/default.svg";
+        }
+    }
 
     private async Task HandleValidSubmit()
     {
+        if (userPictureUploadRef != null)
+        {
+            await userPictureUploadRef.SubmitImage();
+        }
+
         if (OnSubmit.HasDelegate)
         {
             await OnSubmit.InvokeAsync(true);

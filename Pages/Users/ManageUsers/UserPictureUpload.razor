@@ -1,7 +1,11 @@
 ﻿@inject IConfiguration config
 
-<InputFile OnChange="LoadFiles" accept=".png,.jpg,.jpeg,.webp,.tiff"
-           class="form-control" />
+<label for="file-upload"
+       style="border: 1px solid #ccc; display:block; padding: 6px 12px;cursor: pointer; width:8rem;">Subir Imagen</label>
+
+<InputFile OnChange="LoadFiles" id="file-upload" accept=".png,.jpg,.jpeg,.webp,.tiff"
+           class="form-control" style="display: none" />
+
 
 @if (errors.Count > 0)
 {
@@ -17,45 +21,71 @@
 @code {
     private long maxFileSize = 1024 * 1024 * 3; //3MB
     private List<string> errors = new();
-
     private IBrowserFile? file;
 
-    private async void LoadFiles(InputFileChangeEventArgs e)
+    [Parameter]
+    public EventCallback<string> OnFileUploaded { get; set; }
+
+
+
+    public void LoadFiles(InputFileChangeEventArgs e)
     {
-        errors.Clear();
-
         file = e.File;
+        //await SubmitImage();
+    }
+
+    private async Task<string> CaptureFile()
+    {
+        if (file is null)
+        {
+            return "";
+        }
+        try
+        {
+            string newFileName = Path.ChangeExtension(
+            Path.GetRandomFileName(),
+            Path.GetExtension(file.Name));
+
+            string path = Path.Combine(
+                config.GetValue<string>("FileStorage")!,
+
+                newFileName);
+
+            string relativePath = Path.Combine(newFileName);
+
+            Directory.CreateDirectory(Path.Combine(
+               config.GetValue<string>("FileStorage")!,
+               "jmedina"));
 
 
-        string newFileName = Path.ChangeExtension(
-          Path.GetRandomFileName(),
-          Path.GetExtension(file.Name));
+            await using FileStream fs = new(path, FileMode.Create);
+            await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
 
-        string path = Path.Combine(
-            config.GetValue<string>("FileStorage")!,
-            "jmedina",
-            newFileName);
+            Console.WriteLine("Ruta de la imagen: " + relativePath);
+            return relativePath;
 
-
-        Directory.CreateDirectory(Path.Combine(
-           config.GetValue<string>("FileStorage")!,
-           "jmedina"));
-
-
-        await using FileStream fs = new(path, FileMode.Create);
-        await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
+        }
+        catch (Exception ex)
+        {
+            errors.Add($"File: {file.Name} Error: {ex.Message}");
+            throw;
+        }
 
     }
 
-
-
-
-
-
-
-
-
-
-
-
+    private User newImage = new();
+    public async Task SubmitImage()
+    {
+        try
+        {
+            string relativePath = await CaptureFile();
+            newImage.IMAGE_NAME = relativePath;
+            await OnFileUploaded.InvokeAsync(relativePath);
+        }
+        catch (Exception ex)
+        {
+            errors.Add($"Error: {ex.Message}");
+        }
+    }
 }
+

@@ -8,7 +8,7 @@
 
 @if (User is null && !IsBusy)
 {
-    
+
     <div class="alert alert-primary ">El Usuario Con Numero De Empleado: @UserDbId No Existe </div>
 
     <div>
@@ -52,9 +52,6 @@ else
 
     private int? OriginalUserId { get; set; }
 
-
-
-
     [Parameter]
     public int UserDbId { get; set; }
     private string[]? DepartmentsList { get; set; }
@@ -91,7 +88,6 @@ else
             IsBusy = false;
         }
     }
-
 
     private async Task HandleSubmit(bool isValid)
     {
@@ -145,6 +141,7 @@ else
                 }
                 else
                 {
+                    //saving data to DB
                     context.Update(User);
                     await context.SaveChangesAsync();
                 }
@@ -173,6 +170,7 @@ else
 
     }
 
+
     private async
        Task NullifyUserIdAsync<T>(IQueryable<T> queryable) where T : class, new()
     {
@@ -187,6 +185,7 @@ else
             }
         }
     }
+
 
     private async Task DeleteUserByIdAsync(int userId, TescatContext context)
     {
@@ -214,6 +213,7 @@ else
     {
         NavigationManager.NavigateTo("/users/add/" + UserDbId);
     }
+
     protected void ReturnToUsersHome()
     {
         NavigationManager.NavigateTo("/users/");
