@@ -1,7 +1,7 @@
 ﻿@inject IConfiguration config
 
 <label for="file-upload"
-       style="border: 1px solid #ccc; display:block; padding: 6px 12px;cursor: pointer; width:8rem;">Subir Imagen</label>
+       style="border: 1px solid #ccc; display:block; padding: 6px 12px;cursor: pointer; width:10rem;">@UploadComponentStyle Imagen</label>
 
 <InputFile OnChange="LoadFiles" id="file-upload" accept=".png,.jpg,.jpeg,.webp,.tiff"
            class="form-control" style="display: none" />
@@ -26,13 +26,48 @@
     [Parameter]
     public EventCallback<string> OnFileUploaded { get; set; }
 
+    [Parameter]
+    public EventCallback<string> OnFilePreviewReady { get; set; }
 
+    [Parameter]
+    public int ID_USER { get; set; }
 
-    public void LoadFiles(InputFileChangeEventArgs e)
+    [Parameter]
+    public string? UploadComponentStyle { get; set; }
+
+    public async void LoadFiles(InputFileChangeEventArgs e)
     {
-        file = e.File;
-        //await SubmitImage();
+        try
+        {
+            file = e.File;
+
+            // Resize the image and limit its file size
+            var resizedImage = await file.RequestImageFileAsync("image/png", 600, 600);
+
+            // Convert to Base64
+            using Stream imageStream = resizedImage.OpenReadStream(1024 * 1024 * 3); // Limit to 3MB
+            using MemoryStream ms = new MemoryStream();
+            await imageStream.CopyToAsync(ms);
+            var base64Image = $"data:image/png;base64,{Convert.ToBase64String(ms.ToArray())}";
+
+            // Invoke Preview and Upload
+            await OnFilePreviewReady.InvokeAsync(base64Image);
+            // If you also want to upload the file after resizing and conversion
+            // await OnFileUploaded.InvokeAsync(base64Image);
+        }
+        catch (Exception ex)
+        {
+            errors.Add($"File: {file?.Name} Error: {ex.Message}");
+        }
     }
+
+    private async Task<string> ToBase64(IBrowserFile file)
+    {
+        var buffer = new byte[file.Size];
+        await file.OpenReadStream(maxFileSize).ReadAsync(buffer);
+        return $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+    }
+
 
     private async Task<string> CaptureFile()
     {
@@ -42,21 +77,24 @@
         }
         try
         {
-            string newFileName = Path.ChangeExtension(
-            Path.GetRandomFileName(),
-            Path.GetExtension(file.Name));
+            // Convert ID_USER to string
+            string idUserStr = ID_USER.ToString();
 
-            string path = Path.Combine(
-                config.GetValue<string>("FileStorage")!,
+            // Get the directory where the files are stored
+            string directoryPath = config.GetValue<string>("FileStorage")!;
 
-                newFileName);
+            // List all files that start with the ID_USER in the directory and delete them
+            var existingFiles = Directory.GetFiles(directoryPath, $"{idUserStr}.*");
+            foreach (var existingFile in existingFiles)
+            {
+                File.Delete(existingFile);
+            }
 
+            // Use ID_USER as the new file name, and keep the original extension
+            string newFileName = $"{idUserStr}{Path.GetExtension(file.Name)}";
+
+            string path = Path.Combine(directoryPath, newFileName);
             string relativePath = Path.Combine(newFileName);
-
-            Directory.CreateDirectory(Path.Combine(
-               config.GetValue<string>("FileStorage")!,
-               "jmedina"));
-
 
             await using FileStream fs = new(path, FileMode.Create);
             await file.OpenReadStream(maxFileSize).CopyToAsync(fs);

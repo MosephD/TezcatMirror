@@ -8,16 +8,10 @@
 
             <div class="row mb-3">
                 <FormFieldSet Width="col-3" Label="Foto del Empleado">
-                    @if (User.IMAGE_NAME is not null)
-                    {
 
-                    }
-                    else
-                    {
-                    }
-                    <img src="@GetImagePath()" style="width:12rem; display:block; border-radius:1rem; margin-bottom:1rem; object-fit: cover;">
+                    <img src="@GetImagePath()" style="width:12rem; height:12rem; display:block; border-radius:1rem; margin-bottom:1rem; object-fit: cover;">
 
-                    <UserPictureUpload @ref="userPictureUploadRef" OnFileUploaded="HandleFileUpload" />
+                    <UserPictureUpload @ref="userPictureUploadRef" OnFileUploaded="HandleFileUpload" OnFilePreviewReady="HandleFilePreview" UploadComponentStyle="@HandlingUploadStyles()" ID_USER="@User.ID_USER" />
 
                 </FormFieldSet>
             </div>
@@ -141,7 +135,12 @@
 
     private string? imageFilePath;
 
+    private string? base64ImagePreview;
+
     private UserPictureUpload? userPictureUploadRef;
+
+
+    private string? UploadStyles;
 
 
     private void HandleFileUpload(string path)
@@ -153,11 +152,23 @@
         {
             User.IMAGE_NAME = imageFilePath;
         }
+
+    }
+
+
+    private void HandleFilePreview(string base64String)
+    {
+        base64ImagePreview = base64String;
     }
 
     private string GetImagePath()
     {
-        @if (User?.IMAGE_NAME is not null)
+
+        if (!string.IsNullOrEmpty(base64ImagePreview))
+        {
+            return base64ImagePreview;
+        }
+        else if (User?.IMAGE_NAME is not null)
         {
             return $"/Images/{User.IMAGE_NAME}";
         }
@@ -166,6 +177,25 @@
             return $"/Images/default.svg";
         }
     }
+
+
+    private string HandlingUploadStyles()
+    {
+
+        if (IsEdit)
+        {
+            string UploadStyles = "Cambiar";
+            return UploadStyles;
+
+        }
+        else
+        {
+            string UploadStyles = "Agregar";
+            return UploadStyles;
+        }
+
+    }
+
 
     private async Task HandleValidSubmit()
     {
