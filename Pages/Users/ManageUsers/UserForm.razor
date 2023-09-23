@@ -13,6 +13,12 @@
 
                     <UserPictureUpload @ref="userPictureUploadRef" OnFileUploaded="HandleFileUpload" OnFilePreviewReady="HandleFilePreview" UploadComponentStyle="@HandlingUploadStyles()" ID_USER="@User.ID_USER" />
 
+                    @if (IsEdit && User?.IMAGE_NAME != null)
+                    {
+
+                        <button type="button" class="btn btn-danger mt-2" @onclick="RemoveImage" style="width: 8rem;">Quitar Imagen</button>
+                    }
+
                 </FormFieldSet>
             </div>
 
@@ -178,22 +184,22 @@
         }
     }
 
+    private void RemoveImage()
+    {
+        base64ImagePreview = null;
+        imageFilePath = null;
+        if (User != null)
+        {
+            User.IMAGE_NAME = null;
+        }
+
+    }
 
     private string HandlingUploadStyles()
     {
-
-        if (IsEdit)
-        {
-            string UploadStyles = "Cambiar";
-            return UploadStyles;
-
-        }
-        else
-        {
-            string UploadStyles = "Agregar";
-            return UploadStyles;
-        }
-
+        return
+        (!string.IsNullOrEmpty(base64ImagePreview) || (User?.IMAGE_NAME is not null && User.IMAGE_NAME != "default.svg"))
+        ? "Cambiar" : "Agregar";
     }
 
 
@@ -202,6 +208,12 @@
         if (userPictureUploadRef != null)
         {
             await userPictureUploadRef.SubmitImage();
+        }
+
+        // Explicitly set IMAGE_NAME to null if no image is present
+        if (string.IsNullOrEmpty(imageFilePath) && User != null)
+        {
+            User.IMAGE_NAME = null;
         }
 
         if (OnSubmit.HasDelegate)
