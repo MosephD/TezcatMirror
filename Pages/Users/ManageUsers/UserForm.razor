@@ -213,7 +213,16 @@
         // Explicitly set IMAGE_NAME to null if no image is present
         if (string.IsNullOrEmpty(imageFilePath) && User != null)
         {
-            User.IMAGE_NAME = null;
+            //User.IMAGE_NAME = null;
+        }
+
+        else
+        {
+            // Actualiza User.IMAGE_NAME
+            if (User != null)
+            {
+                User.IMAGE_NAME = imageFilePath;
+            }
         }
 
         if (OnSubmit.HasDelegate)

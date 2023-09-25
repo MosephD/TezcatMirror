@@ -73,7 +73,7 @@
     {
         if (file is null)
         {
-            return "";
+            return null;
         }
         try
         {
@@ -117,8 +117,11 @@
         try
         {
             string relativePath = await CaptureFile();
-            newImage.IMAGE_NAME = relativePath;
-            await OnFileUploaded.InvokeAsync(relativePath);
+            if (!string.IsNullOrEmpty(relativePath)) // Añadir esta comprobación
+            {
+                newImage.IMAGE_NAME = relativePath;
+                await OnFileUploaded.InvokeAsync(relativePath);
+            }
         }
         catch (Exception ex)
         {
