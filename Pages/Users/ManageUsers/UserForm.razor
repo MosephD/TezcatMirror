@@ -210,19 +210,10 @@
             await userPictureUploadRef.SubmitImage();
         }
 
-        // Explicitly set IMAGE_NAME to null if no image is present
-        if (string.IsNullOrEmpty(imageFilePath) && User != null)
+        // Actualizar User.IMAGE_NAME sólo si imageFilePath tiene un valor
+        if (User != null && !string.IsNullOrEmpty(imageFilePath))
         {
-            //User.IMAGE_NAME = null;
-        }
-
-        else
-        {
-            // Actualiza User.IMAGE_NAME
-            if (User != null)
-            {
-                User.IMAGE_NAME = imageFilePath;
-            }
+            User.IMAGE_NAME = imageFilePath;
         }
 
         if (OnSubmit.HasDelegate)

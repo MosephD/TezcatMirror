@@ -40,6 +40,15 @@
         try
         {
             file = e.File;
+            string[] permittedExtensions = { ".png", ".jpg", ".jpeg", ".webp", ".tiff" };
+            string ext = Path.GetExtension(file.Name).ToLowerInvariant();
+
+            if (string.IsNullOrEmpty(ext) || !permittedExtensions.Contains(ext))
+            {
+                errors.Add($"Error en su archivo: {file?.Name} Error: Formato de imagen no valido.");
+                return;
+            }
+
 
             // Resize the image and limit its file size
             var resizedImage = await file.RequestImageFileAsync("image/png", 600, 600);
