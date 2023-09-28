@@ -10,8 +10,9 @@ namespace Tescat1.Models
 
         public DbSet<User> Users { get; set; }
         public DbSet<Pc> PC { get; set; }
+        public DbSet<UserCredentials> User_Credentials { get; set; }
 
-        public DbSet<UserCredential> User_Credentials { get; set; }
+        public DbSet<Emails> Emails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -23,7 +24,9 @@ namespace Tescat1.Models
 
             modelBuilder.Entity<Pc>().HasKey(p => p.ID_PC);
 
-            modelBuilder.Entity<UserCredential>().HasKey(p => p.ID_CREDENTIALS);
+            modelBuilder.Entity<UserCredentials>().HasKey(p => p.ID_CREDENTIALS);
+
+            modelBuilder.Entity<Emails>().HasKey(p => p.USER_EMAILS_ID);
         }
 
 

@@ -1,7 +1,7 @@
-﻿@if (User is not null)
-{
+﻿<EditForm Model="@userWithCredentials" OnValidSubmit="@HandleValidSubmit" OnInvalidSubmit="@HandleInvalidSubmit">
+    @if (User is not null)
+    {
 
-    <EditForm Model="@User" OnValidSubmit="@HandleValidSubmit" OnInvalidSubmit="@HandleInvalidSubmit">
         <DataAnnotationsValidator />
 
         <FormSection Title="Informacion Basica">
@@ -98,30 +98,55 @@
             </div>
 
 
-            @if (IsEdit)
-            {
-                <button type="submit" class="btn btn-primary" disabled="@IsBusy">Actualizar</button>
-                <button type="button" class="btn btn-secondary" @onclick="HandleCancel" disabled="@IsBusy">Cancelar</button>
-            }
-            else
-            {
-                <button type="submit" class="btn btn-primary" disabled="@IsBusy">Agregar Usuario</button>
-            }
+        
 
+        </FormSection>
 
+    }
+
+    @if (Credentials is not null)
+    {
+
+        <FormSection Title="Credenciales de Usuario">
+
+            <FormFieldSet Width="col-md-6" Label="Nombre Completo">
+
+                <InputText id="Nombre Completo" class="form-control" @bind-Value="Credentials.PORTAL_USER" />
+                <ValidationMessage For="() => Credentials.PORTAL_USER" />
+
+            </FormFieldSet>
 
         </FormSection>
 
 
 
-    </EditForm>
+    }
 
-}
+
+    <div class="mt-3">
+        @if (IsEdit)
+        {
+            <button type="submit" class="btn btn-primary" disabled="@IsBusy">Actualizar</button>
+            <button type="button" class="btn btn-secondary" @onclick="HandleCancel" disabled="@IsBusy">Cancelar</button>
+        }
+        else
+        {
+            <button type="submit" class="btn btn-primary" disabled="@IsBusy">Agregar Usuario</button>
+        }
+    </div>
+
+</EditForm>
 
 
 @code {
     [Parameter]
     public User? User { get; set; }
+
+    [Parameter]
+    public UserCredentials? Credentials { get; set; }
+
+
+    private UserWithCredentials userWithCredentials = new UserWithCredentials();
 
     [Parameter]
     public string[]? DepartmentsList { get; set; }
@@ -148,6 +173,13 @@
 
     private string? UploadStyles;
 
+
+    protected override void OnInitialized()
+    {
+        // Populate userWithCredentials instance
+        userWithCredentials.User = this.User;
+        userWithCredentials.Credentials = this.Credentials;
+    }
 
     private void HandleFileUpload(string path)
     {
@@ -188,11 +220,11 @@
     {
         base64ImagePreview = null;
         imageFilePath = null;
-        if (User != null)
+        if (User is not null)
         {
             User.IMAGE_NAME = null;
         }
-
+        userPictureUploadRef?.ClearingFile();
     }
 
     private string HandlingUploadStyles()

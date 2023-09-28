@@ -9,7 +9,7 @@
 
 @if (errors.Count > 0)
 {
-    <h3>Errors</h3>
+  @*  <h3>Errores</h3>*@
     <ul class="text-danger">
         @foreach (var error in errors)
         {
@@ -45,7 +45,8 @@
 
             if (string.IsNullOrEmpty(ext) || !permittedExtensions.Contains(ext))
             {
-                errors.Add($"Error en su archivo: {file?.Name} Error: Formato de imagen no valido.");
+                errors.Add($"Error en su archivo: {file?.Name}. Formato de imagen no valido.");
+                ClearingFile();
                 return;
             }
 
@@ -120,9 +121,20 @@
 
     }
 
+    public void ClearingFile()
+    {
+        file = null;
+        //errors.Clear();
+    }
+
     private User newImage = new();
     public async Task SubmitImage()
     {
+        if (file == null)
+        {
+            return;
+        }
+
         try
         {
             string relativePath = await CaptureFile();

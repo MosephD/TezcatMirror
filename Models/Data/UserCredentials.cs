@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Tescat1.Models.Data
 {
-    public partial class UserCredential
+    public partial class UserCredentials
     {
         public Guid ID_CREDENTIALS{ get; set; }
 

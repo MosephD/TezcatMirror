@@ -30,7 +30,7 @@ namespace Tescat1.Models.Data
 
         public int? TEL_KEY { get; set; }
 
-        public int? CEL { get; set; }
+        public string? CEL { get; set; }
 
         public bool? WEB_PRIVILEGES { get; set; }
 

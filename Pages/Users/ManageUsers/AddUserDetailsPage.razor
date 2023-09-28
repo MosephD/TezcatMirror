@@ -103,12 +103,16 @@ else
                 context.Users.Add(User);
                 await context.SaveChangesAsync();
 
+                UserID = User.ID_USER;  // Actualiza el UserID aquí
+
                 SuccessMessage = $"El usuario {User.NAME} se registro correctamente.";
                 ErrorMessage = null;
 
                 User = new()
                 {
                 };
+
+                EditUserPage();
             }
 
         }
@@ -149,10 +153,14 @@ else
     {
         NavigationManager.NavigateTo("/users/details/" + UserID);
     }
+
+
     protected void ReturnToAddUsersHome()
     {
         NavigationManager.NavigateTo("/users/add/");
     }
+
+ 
 
 }
 

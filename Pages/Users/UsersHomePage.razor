@@ -114,6 +114,9 @@
                 // Nullify ID_USER for related PCs
                 await NullifyUserIdAsync(context.PC.Where(p => p.ID_USER == user.ID_USER));
 
+                // Nullify ID_USER for related Emails
+                await NullifyUserIdAsync(context.Emails.Where(p => p.ID_USER == user.ID_USER));
+
                 // Fetch and Delete rows in User_Credentials table for the given ID_USER
                 var relatedUserCredentials = await context.User_Credentials.Where(uc => uc.ID_USER == user.ID_USER).ToListAsync();
                 context.User_Credentials.RemoveRange(relatedUserCredentials);
