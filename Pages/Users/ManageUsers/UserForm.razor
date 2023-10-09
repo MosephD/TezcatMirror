@@ -86,10 +86,21 @@
 
 
             <div class="row mb-3">
+
+
                 <FormFieldSet Width="col-2" Label="Numero de Empleado">
 
                     <InputNumber id="Numero de Empleado" class="form-control" @bind-Value="User.ID_USER" />
                     <ValidationMessage For="() => User.ID_USER" />
+
+                </FormFieldSet>
+
+
+
+                <FormFieldSet Width="col-2" Label="Extension Telefonica">
+
+                    <InputNumber id="Extension Telefonica" class="form-control" @bind-Value="User.TEL" />
+                    <ValidationMessage For="() => User.TEL" />
 
                 </FormFieldSet>
 
@@ -177,8 +188,8 @@
     protected override void OnInitialized()
     {
         // Populate userWithCredentials instance
-        userWithCredentials.User = this.User;
-        userWithCredentials.Credentials = this.Credentials;
+        userWithCredentials.User = User;
+        userWithCredentials.Credentials = Credentials;
     }
 
     private void HandleFileUpload(string path)

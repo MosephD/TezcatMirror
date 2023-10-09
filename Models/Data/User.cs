@@ -8,7 +8,7 @@ namespace Tescat1.Models.Data
         [Required]
         public int ID_USER { get; set; }
 
-        [Required]
+        //[Required]
         public string? NAME { get; set; } = default!;
 
         public string? DEPT { get; set; } = default!;

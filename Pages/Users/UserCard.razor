@@ -2,45 +2,69 @@
 
 
 
-<div class="col-lg-4">
-    <div class="card border-rounded" style="width: 250px; border-radius: 15px;">
-        <div class="card-body">
+<div class="user-card" style=" flex-basis: calc(33.3333% - 20px); margin: 10px; ">
+    <div class="card shadow" style=" border-radius: 12px; border:0px; overflow:hidden; height:100%">
+        <div class="card-body" style="padding: 0px;">
             <center class="m-t-30">
 
-
-
-
                 <div class="profile-img">
-                    <img src="@GetImagePath()" alt="user image" style="width: 150px; height: 150px; object-fit: cover; border-radius: 50%;">
+
+
+                    @if (User.IMAGE_NAME is not null)
+                    {
+                        <img src="/Images/@User.IMAGE_NAME" alt="user image" style="width: 100%;  height:15rem; object-fit: cover;">
+                    }
+                    else
+                    {
+                        <img src="/Images/default.svg" alt="user image" style="width: 80%;  height:15rem; object-fit: cover;">
+                    }
+
+
                 </div>
 
-
-
-
-
-                <h4 class="card-title m-t-10">@User.NAME</h4>
-                <h6 class="card-subtitle">@User.POSITION</h6>
             </center>
         </div>
-        <div>
-            <hr>
-        </div>
+
         <div class="card-body">
-            <small class="text-muted">Ext</small>
-            <h6>@User.TEL</h6>
-            <small class="text-muted p-t-30 db">Departamento</small>
-            <h6>@User.DEPT</h6>
+            <h5 class="card-title m-t-10">@User.NAME</h5>
+
+            <div style="display:flex; align-content:center">
+                <small class="text-details material-symbols-outlined me-1" style="font-size:20px">
+                    work
+                </small>
+                <h6>
+                    @User.POSITION
+                </h6>
+            </div>
         </div>
 
-        <div style="text-align:right" class="card-body">
-            <button class="btn btn-outline-danger bi bi-trash" @onclick="@(async() => await DeleteUser.InvokeAsync(User))" />
+        <div class="card-body pt-0 pb-0">
+            <div style="display:flex; justify-content:space-between">
+                <div>
+                    <small class="text-details bi bi-telephone"></small>
+                    <h4>@User.TEL</h4>
+                </div>
+                <div>
+                    <small class="text-details p-t-30 db bi bi-building"></small>
+                    <h4>@User.DEPT</h4>
+                </div>
+            </div>
+
+        </div>
+
+        <div style="text-align:left" class="card-body">
+
+            @*<button class="btn btn-outline-danger bi bi-trash" @onclick="@(async() => await DeleteUser.InvokeAsync(User))" />*@
+            <button class="btn btn-primary bi bi-binoculars me-2" @onclick="UserDetails">
+            </button>
+
+            <button class="btn btn-outline-primary bi bi-info-circle-fill">
+            </button>
         </div>
 
 
 
-        <button class="btn btn-info" @onclick="UserDetails">
-            Ver
-        </button>
+
 
 
 
@@ -62,17 +86,6 @@
     DeleteUser
     { get; set; }
 
-    private string GetImagePath()
-    {
-        @if (User.IMAGE_NAME is not null)
-        {
-            return $"/Images/{User.IMAGE_NAME}";
-        }
-        else
-        {
-            return $"/Images/default.svg";
-        }
-    }
 
     protected void UserDetails()
     {

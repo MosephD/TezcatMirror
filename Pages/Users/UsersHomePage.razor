@@ -12,7 +12,7 @@
 
 
 <div class="container">
-    <div class="row">
+    <div style="row-gap:4rem; justify-content:center; display:grid; grid-template-columns: 1fr 1fr 1fr">
 
         @if (Users == null)
         {
@@ -22,8 +22,6 @@
         }
         else
         {
-
-
 
             @*Aqui creamos cada tarjeta y las agrupamos con la clase .grid y le pasamos los datos del usuario desde User.cs*@
             @foreach (var user in Users)
@@ -82,7 +80,7 @@
 
 
 
-    private async 
+    private async
     Task NullifyUserIdAsync<T>(IQueryable<T> queryable) where T : class, new()
     {
         var records = await queryable.ToListAsync();
@@ -97,7 +95,7 @@
         }
     }
 
-    private async 
+    private async
     Task DeleteUser(User user)
     {
 
